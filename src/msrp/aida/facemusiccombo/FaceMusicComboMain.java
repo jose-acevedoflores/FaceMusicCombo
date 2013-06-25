@@ -2,6 +2,9 @@ package msrp.aida.facemusiccombo;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 
 import android.media.AudioManager;
@@ -12,11 +15,19 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentUris;
+import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.ServiceInfo;
 import android.database.Cursor;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.hardware.Camera.Face;
 import android.hardware.Camera.FaceDetectionListener;
+import android.speech.RecognizerIntent;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
 import android.view.Menu;
 //import android.view.View;
@@ -24,7 +35,7 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 
 @SuppressLint("NewApi")
-public class FaceMusicComboMain extends Activity {
+public class FaceMusicComboMain extends Activity implements TextToSpeech.OnInitListener{
 
 	private MediaPlayer player;
 	private ContentResolver cr;
@@ -32,6 +43,12 @@ public class FaceMusicComboMain extends Activity {
 	private TextView tvMain;
 	private Camera camera;
 	private CameraPreview cp;
+	private TextToSpeech tts;
+	private boolean ttsInit = false;
+	private HashMap<String, String> map;
+
+	private static final int CHECK_TTS_DATA_REQUEST_CODE = 1;
+	public static final int VOICE_RECOGNITION_REQUEST_CODE = 3;
 
 
 	@Override
@@ -39,9 +56,30 @@ public class FaceMusicComboMain extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.facemusiccombo_main);
 
-		this.initFields();
+
+//		PackageManager pm = getPackageManager();
+//
+//		try {
+//			PackageInfo info =	pm.getPackageInfo("com.pandora.android", PackageManager.GET_ACTIVITIES + PackageManager.GET_SERVICES + PackageManager.GET_PERMISSIONS);
+//
+//			for(ServiceInfo s : info.services)
+//			{
+//				System.out.println(s.name);
+//				if(s.permission != null)
+//					System.out.println(s.permission);
+//			}
+//
+//				Intent intent = pm.getLaunchIntentForPackage("com.pandora.android");
+//				//Intent intent = new Intent("com.pandora.android");
+//				//intent.addFlags(Intent.);
+//				this.startActivity(intent);
+//		} catch (NameNotFoundException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 
 
+		//this.initFields();
 	}
 
 	@Override
@@ -73,15 +111,74 @@ public class FaceMusicComboMain extends Activity {
 
 	@Override
 	protected void onDestroy() {
-		player.stop();
-		player.release();
-		player = null;
+		if(player != null)
+		{
+			player.stop();
+			player.release();
+			player = null;
+		}
 		//tm = null;
 		Log.d("debug", "Destroyed");
 		super.onDestroy();
 	}
 
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
+		if (requestCode == CHECK_TTS_DATA_REQUEST_CODE) {
+
+			if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
+				tts = new TextToSpeech(getApplicationContext(), this); // 1
+				tts.setLanguage(Locale.US);
+			} else {
+				// TTS data not yet loaded, try to install it
+				Intent ttsLoadIntent = new Intent();
+				ttsLoadIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+				startActivity(ttsLoadIntent);
+			}
+
+
+		}
+		else if(requestCode == VOICE_RECOGNITION_REQUEST_CODE && resultCode == RESULT_OK)
+		{
+			// Fill the list view with the strings the recognizer thought it could have heard
+			ArrayList<String> matches = data.getStringArrayListExtra(
+					RecognizerIntent.EXTRA_RESULTS);
+
+
+			//	List<PackageInfo> l = pm.getInstalledPackages(PackageManager.GET_ACTIVITIES);
+
+			//for(PackageInfo str : l )
+			//	System.out.println(str.packageName);
+
+			//			for(String str : matches)
+			//			{
+			//				System.out.println(str);
+			//				if(str.equals("start") || str.equals("play"))
+			//				{
+			//					Log.d("DEBUG", "Try and launch pandora");
+			//					Intent intent = pm.getLaunchIntentForPackage("com.pandora.android");
+			//					this.startService(intent);
+			//				}
+			//			}
+		}	
+	}
+
+	@Override
+	public void onInit(int status) {
+		if(status == TextToSpeech.SUCCESS)
+		{
+			ttsInit = true;
+			tts.setOnUtteranceProgressListener(new MyUtteranceListener());
+			map.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "onRespond");
+			tts.speak("I'm your personal media player. Say start or stop to play music.", TextToSpeech.QUEUE_ADD, map );
+		}
+		else
+		{
+			Log.d("DEBUG", "No TTS working");
+		}
+
+	}
+	//**************************************** My methods ***********************************
 
 	/**
 	 * 
@@ -172,6 +269,23 @@ public class FaceMusicComboMain extends Activity {
 		cr = this.getContentResolver();
 		cu = null;
 
+		//TTS engine part
+		map = new HashMap<String, String>();
+		//Verify if TTS is available 
+		Intent checkIntent = new Intent();
+		checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
+		startActivityForResult(checkIntent, CHECK_TTS_DATA_REQUEST_CODE);			
+
+
+		//this.enableFaceDetec();
+
+	}
+
+	/**
+	 * 
+	 */
+	private void enableFaceDetec()
+	{
 		camera = getCameraInstance();
 		camera.setFaceDetectionListener(new FaceDetect());
 		camera.setDisplayOrientation(90);
@@ -184,6 +298,8 @@ public class FaceMusicComboMain extends Activity {
 		//preview.setVisibility(View.INVISIBLE);
 	}
 
+
+	// ****************************************************************************************	
 	/**
 	 * 
 	 * @author joseacevedo
@@ -215,8 +331,8 @@ public class FaceMusicComboMain extends Activity {
 					}
 					else
 						playRandSong();
-						
-					
+
+
 				}
 				else if(player.isPlaying() && Math.abs(faces[0].rect.centerX() ) - Math.abs(previousX) >= 60 && System.currentTimeMillis() -  prevTime  < 1000)
 				{
@@ -231,6 +347,40 @@ public class FaceMusicComboMain extends Activity {
 			else
 				Log.d("FaceDetectTest", "Wu " + faces.length);
 		}
+	}
+
+
+	/**
+	 * 
+	 * @author joseacevedo
+	 *
+	 */
+	class MyUtteranceListener extends UtteranceProgressListener{
+
+		@Override
+		public void onDone(String utteranceId) {
+			Log.d("DEBUG", "Utterdance Done " + utteranceId);
+
+			Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+			intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+					RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+			startActivityForResult(intent, VOICE_RECOGNITION_REQUEST_CODE);
+
+		}
+
+		@Override
+		public void onError(String utteranceId) {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void onStart(String utteranceId) {
+
+			Log.d("DEBUG", "Utterance Started "+utteranceId);
+
+		}
+
 	}
 
 }
