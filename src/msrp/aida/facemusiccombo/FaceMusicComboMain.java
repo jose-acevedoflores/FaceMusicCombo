@@ -3,36 +3,32 @@ package msrp.aida.facemusiccombo;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
-import android.media.AudioManager;
-import android.media.MediaPlayer;
-import android.net.Uri;
-import android.os.Bundle;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.content.pm.ServiceInfo;
 import android.database.Cursor;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.hardware.Camera.Face;
 import android.hardware.Camera.FaceDetectionListener;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.net.Uri;
+import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
 import android.view.Menu;
-//import android.view.View;
+import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.TextView;
+//import android.view.View;
 
 @SuppressLint("NewApi")
 public class FaceMusicComboMain extends Activity implements TextToSpeech.OnInitListener{
@@ -79,7 +75,7 @@ public class FaceMusicComboMain extends Activity implements TextToSpeech.OnInitL
 //		}
 
 
-		//this.initFields();
+		this.initFields();
 	}
 
 	@Override
@@ -270,14 +266,14 @@ public class FaceMusicComboMain extends Activity implements TextToSpeech.OnInitL
 		cu = null;
 
 		//TTS engine part
-		map = new HashMap<String, String>();
+		//map = new HashMap<String, String>();
 		//Verify if TTS is available 
-		Intent checkIntent = new Intent();
-		checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
-		startActivityForResult(checkIntent, CHECK_TTS_DATA_REQUEST_CODE);			
+		//Intent checkIntent = new Intent();
+		//checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
+		//startActivityForResult(checkIntent, CHECK_TTS_DATA_REQUEST_CODE);			
 
 
-		//this.enableFaceDetec();
+		this.enableFaceDetec();
 
 	}
 
@@ -295,7 +291,7 @@ public class FaceMusicComboMain extends Activity implements TextToSpeech.OnInitL
 		cp = new CameraPreview(this, camera);
 
 		preview.addView(cp);
-		//preview.setVisibility(View.INVISIBLE);
+		preview.setVisibility(View.INVISIBLE);
 	}
 
 
@@ -316,33 +312,36 @@ public class FaceMusicComboMain extends Activity implements TextToSpeech.OnInitL
 		public void onFaceDetection(Face[] faces, Camera camera) {
 			if(faces.length >= 1)
 			{	
-				Log.d("FaceDetectTest", "face detected: "+ faces.length +
-						" Face 1 Location X: " + faces[0].rect.centerX() +
-						" || Y: " + faces[0].rect.centerY() );
-
-
-				if(  !player.isPlaying() && Math.abs(faces[0].rect.centerY() ) - Math.abs(previousY) >= 40 && System.currentTimeMillis() -  prevTime  < 1000 )
-				{
-					System.out.println("Yes - play song");
-					if(paused)
-					{
-						paused = false;
-						player.start();
-					}
-					else
-						playRandSong();
-
-
-				}
-				else if(player.isPlaying() && Math.abs(faces[0].rect.centerX() ) - Math.abs(previousX) >= 60 && System.currentTimeMillis() -  prevTime  < 1000)
-				{
-					System.out.println("No - stop song");
-					player.pause();
-					paused = true;
-				}
-				prevTime = System.currentTimeMillis();
-				previousY = faces[0].rect.centerY();
-				previousX = faces[0].rect.centerX();
+				System.out.println("id " +faces[0].id);
+				System.out.println("Left Eye: " + faces[0].leftEye  + " Right Eye "+faces[0].rightEye);
+//				
+//				Log.d("FaceDetectTest", "face detected: "+ faces.length +
+//						" Face 1 Location X: " + faces[0].rect.centerX() +
+//						" || Y: " + faces[0].rect.centerY() );
+//
+//
+//				if(  !player.isPlaying() && Math.abs(faces[0].rect.centerY() ) - Math.abs(previousY) >= 40 && System.currentTimeMillis() -  prevTime  < 1000 )
+//				{
+//					System.out.println("Yes - play song");
+//					if(paused)
+//					{
+//						paused = false;
+//						player.start();
+//					}
+//					else
+//						playRandSong();
+//
+//
+//				}
+//				else if(player.isPlaying() && Math.abs(faces[0].rect.centerX() ) - Math.abs(previousX) >= 60 && System.currentTimeMillis() -  prevTime  < 1000)
+//				{
+//					System.out.println("No - stop song");
+//					player.pause();
+//					paused = true;
+//				}
+//				prevTime = System.currentTimeMillis();
+//				previousY = faces[0].rect.centerY();
+//				previousX = faces[0].rect.centerX();
 			}
 			else
 				Log.d("FaceDetectTest", "Wu " + faces.length);
