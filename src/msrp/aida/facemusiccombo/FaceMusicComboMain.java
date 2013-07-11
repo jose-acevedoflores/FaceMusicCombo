@@ -56,7 +56,8 @@ public class FaceMusicComboMain extends Activity implements TextToSpeech.OnInitL
 //		PackageManager pm = getPackageManager();
 //
 //		try {
-//			PackageInfo info =	pm.getPackageInfo("com.pandora.android", PackageManager.GET_ACTIVITIES + PackageManager.GET_SERVICES + PackageManager.GET_PERMISSIONS);
+//			PackageInfo info =	pm.getPackageInfo("com.pandora.android",
+		//PackageManager.GET_ACTIVITIES + PackageManager.GET_SERVICES + PackageManager.GET_PERMISSIONS);
 //
 //			for(ServiceInfo s : info.services)
 //			{
@@ -320,7 +321,8 @@ public class FaceMusicComboMain extends Activity implements TextToSpeech.OnInitL
 //						" || Y: " + faces[0].rect.centerY() );
 //
 //
-//				if(  !player.isPlaying() && Math.abs(faces[0].rect.centerY() ) - Math.abs(previousY) >= 40 && System.currentTimeMillis() -  prevTime  < 1000 )
+//				if(  !player.isPlaying() && Math.abs(faces[0].rect.centerY() ) - Math.abs(previousY) >= 40 && 
+				//System.currentTimeMillis() -  prevTime  < 1000 )
 //				{
 //					System.out.println("Yes - play song");
 //					if(paused)
@@ -333,7 +335,8 @@ public class FaceMusicComboMain extends Activity implements TextToSpeech.OnInitL
 //
 //
 //				}
-//				else if(player.isPlaying() && Math.abs(faces[0].rect.centerX() ) - Math.abs(previousX) >= 60 && System.currentTimeMillis() -  prevTime  < 1000)
+//				else if(player.isPlaying() && Math.abs(faces[0].rect.centerX() ) - Math.abs(previousX) >= 60 && 
+				//System.currentTimeMillis() -  prevTime  < 1000)
 //				{
 //					System.out.println("No - stop song");
 //					player.pause();
